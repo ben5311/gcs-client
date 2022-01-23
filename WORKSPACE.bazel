@@ -1,0 +1,50 @@
+workspace(name = "gcs-client")
+
+# Add the necessary Starlark functions to fetch google-cloud-cpp.
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Fetch Boost dependencies
+_RULES_BOOST_COMMIT = "652b21e35e4eeed5579e696da0facbe8dba52b1f"
+
+http_archive(
+    name = "com_github_nelhage_rules_boost",
+    sha256 = "c1b8b2adc3b4201683cf94dda7eef3fc0f4f4c0ea5caa3ed3feffe07e1fb5b15",
+    strip_prefix = "rules_boost-%s" % _RULES_BOOST_COMMIT,
+    urls = [
+        "https://github.com/nelhage/rules_boost/archive/%s.tar.gz" % _RULES_BOOST_COMMIT,
+    ],
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
+
+# Fetch the Google Cloud C++ libraries.
+# NOTE: Update this version and SHA256 as needed.
+http_archive(
+    name = "com_github_googleapis_google_cloud_cpp",
+    sha256 = "e4e9eac1e7999eff195db270bc2a719004660b3730ebb5d2f444f2d2057e49b2",
+    strip_prefix = "google-cloud-cpp-1.35.0",
+    url = "https://github.com/googleapis/google-cloud-cpp/archive/v1.35.0.tar.gz",
+)
+
+# Load indirect dependencies due to
+#     https://github.com/bazelbuild/bazel/issues/1943
+load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
+
+google_cloud_cpp_deps()
+
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    cc = True,
+    grpc = True,
+)
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()

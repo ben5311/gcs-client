@@ -1,0 +1,7 @@
+.idea
+*.iml
+bazel-*
+Makefile
+make
+CMake*
+out
